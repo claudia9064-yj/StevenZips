@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.or.ddit.domain.member.resident.mapper.IResidentFacilityMapper">
+
+    <select id="selectResidentAptCmplexNo" resultType="string">
+        /* IResidentFacilityMapper.selectResidentAptCmplexNo */
+        SELECT au.apt_cmplex_no
+        FROM hshld_head hh
+                 JOIN apt_detail ad
+                      ON hh.ho_no = ad.ho_no
+                 JOIN apt_unit au
+                      ON ad.dong_no = au.dong_no
+        WHERE hh.user_no = #{userNo}
+          AND NVL(hh.inout_cd, 'IN') != 'OUT'
+          AND ROWNUM = 1
+    </select>
+
+    <select id="selectAptInfo"
+            resultType="kr.or.ddit.domain.central.dto.FacilityInfoDTO">
+
+        /* IResidentFacilityMapper.selectAptInfo */
+
+        SELECT ac.apt_cmplex_no  aptCmplexNo      /* 단지번호 */
+             , ac.apt_cmplex_nm  aptCmplexNm      /* 단지명 */
+             , mo.mgmt_ofc_nm    mgmtOfficeInfo   /* 관리사무소 정보 */
+
+             , ac.sido_nm        sidoNm           /* 시도명 */
+             , ac.sigungu_nm     sigunguNm        /* 시군구명 */
+             , ac.emd_nm         emdNm            /* 읍면동명 */
+             , ac.dorojuso       dorojuso         /* 도로명주소 */
+             , ac.heat_ty        heatTy           /* 난방방식 */
+             , ac.cnsco_nm       cnscoNm          /* 시공사명 */
+             , ac.unit_cnt       unitCnt          /* 세대수 */
+             , ac.dong_cnt       dongCnt          /* 동수 */
+             , ac.pkg_cnt        pkgCnt           /* 주차가능대수 */
+             , ac.free_pkg_cnt   freePkgCnt       /* 세대당 무료주차대수 */
+             , ac.max_floor      maxFloor         /* 최고층수 */
+             , ac.cc_cnt         ccCnt            /* CCTV 수 */
+             , ac.bld_yr         bldYr            /* 준공년도 */
+        FROM apt_complex ac
+                 LEFT JOIN mgmt_office mo
+                           ON ac.apt_cmplex_no = mo.apt_cmplex_no
+                               AND NVL(mo.use_yn, 'Y') = 'Y'
+        WHERE ac.apt_cmplex_no = #{aptCmplexNo}
+
+    </select>
+
+    <select id="selectResidentFacilityInfoList"
+            resultType="kr.or.ddit.domain.central.dto.FacilityInfoDTO">
+
+        /* IResidentFacilityMapper.selectResidentFacilityInfoList */
+
+        SELECT *
+        FROM (
+        SELECT rownum rn
+        , a.*
+        FROM (
+        SELECT f.facility_no     facilityNo      /* 시설번호 */
+        , f.facility_ty_cd  facilityTyCd    /* 시설유형코드 */
+        , f.facility_nm     facilityNm      /* 시설명 */
+        , f.dong_no         dongNo          /* 동번호 */
+        , f.loc_cn          locCn           /* 위치설명 */
+        , f.use_yn          useYn           /* 사용여부 */
+        FROM facility f
+        WHERE f.apt_cmplex_no = #{aptCmplexNo}
+        AND NVL(f.use_yn, 'Y') = 'Y'
+
+        <if test="facilityTyCd != null and facilityTyCd != ''">
+            AND f.facility_ty_cd = #{facilityTyCd}
+        </if>
+
+        <if test="facilityNm != null and facilityNm != ''">
+            AND f.facility_nm LIKE '%' || #{facilityNm} || '%'
+        </if>
+
+        <if test="locCn != null and locCn != ''">
+            AND f.loc_cn LIKE '%' || #{locCn} || '%'
+        </if>
+
+        ORDER BY ${sortColumn} ${sortOrder}
+        ) a
+        WHERE rownum &lt;= #{endRow}
+        )
+        WHERE rn &gt;= #{startRow}
+
+    </select>
+
+    <!-- 총 갯수 표시와 페이징 계산용 -->
+    <select id="selectResidentFacilityInfoCount" resultType="int">
+        SELECT COUNT(*)
+        FROM facility f
+        WHERE f.apt_cmplex_no = #{aptCmplexNo}
+        AND NVL(f.use_yn, 'Y') = 'Y'
+
+        <if test="facilityTyCd != null and facilityTyCd != ''">
+            AND f.facility_ty_cd = #{facilityTyCd}
+        </if>
+
+        <if test="facilityNm != null and facilityNm != ''">
+            AND f.facility_nm LIKE '%' || #{facilityNm} || '%'
+        </if>
+
+        <if test="locCn != null and locCn != ''">
+            AND f.loc_cn LIKE '%' || #{locCn} || '%'
+        </if>
+    </select>
+
+    <select id="selectFacilityStatusCardList"
+            resultType="kr.or.ddit.domain.member.resident.dto.ResidentFacilityHistoryDTO">
+        /* IResidentFacilityMapper.selectFacilityStatusCardList */
+
+        SELECT f.facility_no                         facilityNo       /* 시설번호 */
+             , f.facility_nm                         facilityNm       /* 시설명 */
+             , f.facility_ty_cd                      facilityTyCd     /* 시설유형코드 */
+             , TO_CHAR(fch.chk_dt, 'YYYY-MM-DD')     chkDt            /* 최근 점검일 */
+             , NVL(fch.chk_stts_cd, '점검대기')       chkSttsCd        /* 점검상태 */
+             , NVL(fch.chk_cn, '최근 점검 이력 없음') chkCn             /* 점검내용 */
+             , fch.chk_ty_cd                         chkTyCd          /* 점검유형코드 */
+             , p.partner_nm                          partnerNm        /* 협력업체명 */
+             , NVL(p.pic_nm, p.partner_nm)           picNm            /* 담당자명 */
+        FROM facility f
+                 LEFT JOIN (
+            SELECT fac_chk_hstry_no
+                 , facility_no
+                 , partner_no
+                 , chk_dt
+                 , chk_stts_cd
+                 , chk_cn
+                 , chk_ty_cd
+                 , reg_dt
+                 , ROW_NUMBER() OVER (
+                PARTITION BY facility_no
+                ORDER BY chk_dt DESC NULLS LAST
+                    , reg_dt DESC NULLS LAST
+                    , fac_chk_hstry_no DESC
+                ) rn
+            FROM facility_check_hstry
+        ) fch
+                           ON f.facility_no = fch.facility_no
+                               AND fch.rn = 1
+                 LEFT JOIN partner p
+                           ON fch.partner_no = p.partner_no
+        WHERE f.apt_cmplex_no = #{aptCmplexNo}
+          AND NVL(f.use_yn, 'Y') = 'Y'
+        ORDER BY f.facility_ty_cd
+               , f.facility_nm
+
+    </select>
+
+    <!-- 시설 상세 이력  -->
+    <select id="selectFacilityHistoryList"
+            resultType="kr.or.ddit.domain.member.resident.dto.ResidentFacilityHistoryDTO">
+        /* IResidentFacilityMapper.selectFacilityHistoryList */
+
+        SELECT *
+        FROM (
+                 SELECT rownum rn
+                      , a.*
+                 FROM (
+                          SELECT fch.fac_chk_hstry_no       facChkHstryNo   /* 시설점검이력번호 */
+                               , f.facility_no              facilityNo      /* 시설번호 */
+                               , f.facility_nm              facilityNm      /* 시설명 */
+                               , f.facility_ty_cd           facilityTyCd    /* 시설유형코드 */
+                               , TO_CHAR(fch.chk_dt, 'YYYY-MM-DD') chkDt    /* 점검일 */
+                               , fch.chk_stts_cd            chkSttsCd       /* 점검상태코드 */
+                               , fch.chk_cn                 chkCn           /* 점검내용 */
+                               , fch.chk_ty_cd              chkTyCd         /* 점검유형코드 */
+                               , p.partner_nm               partnerNm       /* 협력업체명 */
+                               , NVL(p.pic_nm, p.partner_nm) picNm          /* 담당자명 */
+                          FROM facility_check_hstry fch
+                                   JOIN facility f
+                                        ON fch.facility_no = f.facility_no
+                                   LEFT JOIN partner p
+                                             ON fch.partner_no = p.partner_no
+                          WHERE f.apt_cmplex_no = #{aptCmplexNo}
+                            AND NVL(f.use_yn, 'Y') = 'Y'
+
+                            <if test="facilityTyCd != null and facilityTyCd != ''">
+                                AND f.facility_ty_cd = #{facilityTyCd}
+                            </if>
+
+                          ORDER BY fch.chk_dt DESC NULLS LAST
+                                 , fch.reg_dt DESC NULLS LAST
+                                 , fch.fac_chk_hstry_no DESC
+                      ) a
+                 WHERE rownum &lt;= #{endRow}
+             )
+        WHERE rn &gt;= #{startRow}
+
+    </select>
+
+    <select id="selectFacilityHistoryCount" resultType="int">
+        /* IResidentFacilityMapper.selectFacilityHistoryCount */
+        SELECT COUNT(*)
+        FROM facility_check_hstry fch
+                 JOIN facility f
+                      ON fch.facility_no = f.facility_no
+        WHERE f.apt_cmplex_no = #{aptCmplexNo}
+          AND NVL(f.use_yn, 'Y') = 'Y'
+
+            <if test="facilityTyCd != null and facilityTyCd != ''">
+                AND f.facility_ty_cd = #{facilityTyCd}
+            </if>
+    </select>
+
+</mapper>

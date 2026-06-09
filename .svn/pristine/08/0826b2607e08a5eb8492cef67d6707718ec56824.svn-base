@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.domain.central.rentCtrt.mapper.IRentCtrtMapper">
+
+    <!-- 계약 시퀀스 키 생성 -->
+    <select id="getNextRentCtrtSeq" resultType="java.lang.String">
+        select SEQ_RENT_CTRT.nextval
+        from DUAL
+    </select>
+
+    <!-- 가계약 인서트 -->
+    <insert id="insertRentCtrt" parameterType="java.util.List">
+        insert into RENT_CTRT ( /* kr.or.ddit.domain.central.rentCtrt.mapper.IRentCtrtMapper.insertRentCtrt */
+        RENT_CTRT_NO
+        , USER_NO
+        , REG_DT
+        , CTRT_STTS_CD
+        , RENT_LSTG_NO
+        , DPST_AMT
+        , MTHLY_RENT_AMT
+        , SBMSN_DOC_NO
+        , MVIN_DT
+        )
+        <foreach collection="param" item="map" separator="UNION ALL">
+            select
+            #{map.rentCtrtNo}
+            , A.USER_NO
+            , sysdate
+            , 'PENDING'
+            , R.RENT_LSTG_NO
+            , R.DPST_AMT
+            , R.MTHLY_RENT_AMT
+            , DOC.SBMSN_DOC_NO
+            , ANN.MVIN_PRD_DT
+            from APLCT A
+            inner join APT_HO_TY HT on(A.HO_TY_NO = HT.HO_TY_NO)
+            inner join APT_DETAIL H on(HT.HO_TY_NO = H.HO_TY_NO)
+            inner join RENT_LISTING R on(H.HO_NO = R.HO_NO)
+            inner join SBMSN_DOC DOC on(DOC.APLCT_NO = A.APLCT_NO)
+            inner join CENTER_ANN_BOARD_POST ANN on(A.ANN_NO = ANN.ANN_NO)
+            where A.APLCT_NO = #{map.aplctNo}
+            and ROWNUM = 1
+        </foreach>
+    </insert>
+
+    <insert id="insertCtrtMgr">
+        INSERT INTO CTRT_MGR (
+                               CTRT_MGR_NO
+                               , USER_NO
+                               , MGR_ASGN_DT
+                               , CHG_YN
+                               , RENT_CTRT_NO
+                               )
+        SELECT SEQ_CTRT_MGR.nextval, T.* FROM (
+        <foreach collection="param" item="map" separator="UNION ALL">
+            SELECT
+                  #{manager} AS USER_NO
+                  , sysdate AS MGR_ASGN_DT
+                  , 'N' AS CHG_YN
+                  , #{map.rentCtrtNo} AS RENT_CTRT_NO
+              FROM DUAL
+        </foreach>
+        ) T
+    </insert>
+
+    <!-- 담당자 별 계약 조회 -->
+    <select id="selectCtrt" resultType="java.util.Map">
+        select  /* kr.or.ddit.domain.central.rentCtrt.mapper.IRentCtrtMapper.selectCtrt */
+                 C.RENT_CTRT_NO
+               , U.USER_ID
+               , C.USER_NO
+               , U.USER_NM
+               , A.APT_CMPLEX_NO
+               , A.APT_CMPLEX_NM
+               , C.CTRT_APRV_DT
+               , C.MVIN_DT
+               , C.MVOUT_DT
+               , L.RENT_TYPE_CD
+               , C.DPST_AMT
+               , C.MTHLY_RENT_AMT
+               , C.CTRT_STTS_CD
+               , M.USER_NO as CTRT_MGR_USER_NO
+               , U2.USER_ID as CTRT_MGR_USER_ID
+               , U2.USER_NM as CTRT_MGR_USER_NM
+          from RENT_CTRT C
+    inner join CTRT_MGR M on(C.RENT_CTRT_NO = M.RENT_CTRT_NO)
+    inner join RENT_LISTING L on(C.RENT_LSTG_NO = L.RENT_LSTG_NO)
+    inner join APT_DETAIL H on(H.HO_NO = L.HO_NO)
+    inner join APT_UNIT D on(D.DONG_NO = H.DONG_NO)
+    inner join APT_COMPLEX A on(A.APT_CMPLEX_NO = D.APT_CMPLEX_NO)
+    inner join MEMBER U on(C.USER_NO = U.USER_NO)
+    inner join MEMBER U2 on(M.USER_NO = U2.USER_NO)
+         where M.USER_NO = #{userNo}
+           and M.CHG_YN = 'N'
+    </select>
+
+    <select id="selectCtrtCount" resultType="java.lang.Integer">
+        select COUNT(*)     /* kr.or.ddit.domain.central.rentCtrt.mapper.IRentCtrtMapper.selectCtrtCount */
+          from RENT_CTRT C
+    inner join CTRT_MGR M on(C.RENT_CTRT_NO = M.RENT_CTRT_NO)
+         where M.USER_NO = #{userNo}
+    </select>
+
+    <select id="selectCtrtDashboard" resultType="java.util.Map">
+        select /* kr.or.ddit.domain.central.rentCtrt.mapper.IRentCtrtMapper.selectCtrtCount */
+                COUNT(*) as "totalCnt"
+               ,COUNT(case when CTRT_STTS_CD = 'PENDING' then 1 end) as "pendingCnt"
+               ,COUNT(case when CTRT_STTS_CD = 'EXPIRED' then 1 end) as "expiredCnt"
+               ,COUNT(case when CTRT_STTS_CD = 'APPROVED' then 1 end) as "approvedCnt"
+               ,COUNT(case when CTRT_STTS_CD = 'TERMINATED' then 1 end) as "terminatedCnt"
+               ,COUNT(case when CTRT_STTS_CD = 'REJECT' then 1 end) as "rejectCnt"
+               ,COUNT(case when CTRT_STTS_CD = 'CANCEL' then 1 end) as "cancelCnt"
+          from RENT_CTRT
+    </select>
+
+</mapper>

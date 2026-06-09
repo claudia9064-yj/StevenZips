@@ -1,0 +1,511 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    color: #17201b;
+    background: #f8faf6;
+}
+
+/* =========================
+   전체 페이지 래퍼
+   ========================= */
+.rent-map-wrap {
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 88px 0 32px;
+}
+
+/* 사이드바 있는 화면 */
+.rent-map-wrap.with-sidebar {
+    max-width: none;
+    width: calc(100% - 280px);
+    margin-left: 280px;
+    margin-right: 0;
+    padding: 88px 80px 32px;
+}
+
+/* =========================
+   상단 타이틀 영역
+   ========================= */
+.rent-map-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+}
+
+.rent-map-top-left {
+    min-width: 0;
+}
+
+.rent-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: #98a2b3;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.rent-breadcrumb strong {
+    color: #005f46;
+    font-weight: 800;
+}
+
+.breadcrumb-arrow {
+    color: #98a2b3;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.rent-map-page-title {
+    margin: 0 0 10px;
+    font-size: 36px;
+    line-height: 1.15;
+    font-weight: 900;
+    color: #0b1f17;
+}
+
+.rent-map-page-desc {
+    margin: 0;
+    font-size: 16px;
+    color: #667085;
+    line-height: 1.6;
+}
+
+.rent-map-top-right {
+    flex-shrink: 0;
+    padding-top: 10px;
+}
+
+.rent-list-move-btn {
+    height: 48px;
+    padding: 0 22px;
+    border: 1px solid #e4e7ec;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #344054;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(16, 24, 40, 0.05);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rent-list-move-btn:hover {
+    background: #f9fafb;
+    border-color: #d0d5dd;
+}
+
+.rent-list-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* =========================
+   지도 + 단지매물목록 + 상세정보 레이아웃
+   ========================= */
+.rent-map-page {
+    display: grid;
+    grid-template-columns: 290px 520px 1fr;
+    height: calc(100vh - 250px);
+    min-height: 680px;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 28px;
+    box-shadow: 0 16px 40px rgba(16, 24, 40, 0.08);
+    position: relative;
+    transition: grid-template-columns 0.25s ease;
+}
+
+/* 처음 진입 / 닫힘 상태: 지도만 표시 */
+.rent-map-page.panels-collapsed {
+    grid-template-columns: 0 0 1fr;
+}
+
+/* =========================
+   좌측: 선택 단지 매물 목록 패널
+   ========================= */
+.rent-complex-list-panel {
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    overflow-y: auto;
+    transition: opacity 0.2s ease;
+}
+
+.rent-map-page.panels-collapsed .rent-complex-list-panel {
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-right: none;
+}
+
+.rent-complex-list-header {
+    padding: 22px 22px 18px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    background: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+}
+
+.rent-complex-list-label {
+    margin: 0 0 6px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #005f46;
+}
+
+.rent-complex-list-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+    color: #0b1f17;
+    word-break: keep-all;
+}
+
+.rent-panel-close-btn {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: #f2f4f7;
+    color: #344054;
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.rent-panel-close-btn:hover {
+    background: #005f46;
+    color: #ffffff;
+}
+
+.complex-rent-list {
+    padding: 14px;
+}
+
+.complex-rent-card {
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.complex-rent-card:hover,
+.complex-rent-card.active {
+    border-color: #005f46;
+    box-shadow: 0 8px 24px rgba(0, 95, 70, 0.12);
+}
+
+.complex-rent-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.complex-rent-title {
+    margin: 0 0 8px;
+    font-size: 17px;
+    font-weight: 900;
+    color: #0b1f17;
+}
+
+.complex-rent-price {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 900;
+    color: #005f46;
+}
+
+.complex-rent-info {
+    margin: 0;
+    font-size: 13px;
+    color: #667085;
+    line-height: 1.5;
+}
+
+.rent-empty-message {
+    padding: 24px;
+    color: #667085;
+    line-height: 1.6;
+}
+
+/* =========================
+   가운데: 매물 상세 패널
+   ========================= */
+.rent-detail-panel {
+    position: relative;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    transition: opacity 0.2s ease;
+}
+
+.rent-map-page.panels-collapsed .rent-detail-panel {
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-right: none;
+}
+
+/* 이미지 영역은 패널 맨 위에 완전 밀착 */
+.rent-detail-hero-area {
+    width: 100%;
+    height: 200px;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    background: #eef2f0;
+    overflow: hidden;
+}
+
+.rent-detail-hero-area img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    margin: 0;
+    padding: 0;
+}
+
+/* 이미지 아래 상세정보만 스크롤 */
+.rent-detail-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+}
+
+#rentDetail {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.rent-detail-empty {
+    padding: 40px 28px;
+    color: #667085;
+}
+
+.rent-detail-content {
+    width: 100%;
+    margin: 0;
+    padding: 24px;
+}
+
+.rent-detail-content h2 {
+    margin: 0 0 8px;
+    font-size: 25px;
+    font-weight: 900;
+}
+
+.rent-detail-price {
+    font-size: 24px;
+    font-weight: 900;
+    color: #005f46;
+    margin-bottom: 22px;
+}
+
+.rent-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid #e5e7eb;
+    border-left: 1px solid #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.rent-info-item {
+    padding: 14px;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.rent-info-label {
+    display: block;
+    font-size: 12px;
+    color: #667085;
+    margin-bottom: 5px;
+}
+
+.rent-info-value {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.rent-detail-section-title {
+    font-size: 17px;
+    font-weight: 900;
+    margin: 26px 0 10px;
+}
+
+.rent-detail-desc {
+    color: #344054;
+    line-height: 1.7;
+}
+
+.rent-detail-btn {
+    width: 100%;
+    height: 48px;
+    border: none;
+    border-radius: 12px;
+    background: #005f46;
+    color: #ffffff;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.rent-detail-btn:hover {
+    background: #004d39;
+}
+
+/* =========================
+   지도
+   ========================= */
+.rent-map-panel {
+    position: relative;
+    min-width: 0;
+    height: 100%;
+}
+
+#rentMap {
+    width: 100%;
+    height: 100%;
+}
+
+/* 지도 마커 스타일 */
+.rent-marker {
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #005f46;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+/* =========================
+   반응형
+   ========================= */
+@media (max-width: 1400px) {
+    .rent-map-wrap.with-sidebar {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+    .rent-map-page {
+        grid-template-columns: 320px 480px 1fr;
+    }
+
+    .rent-map-page.panels-collapsed {
+        grid-template-columns: 0 0 1fr;
+    }
+}
+
+@media (max-width: 1200px) {
+    .rent-map-wrap.with-sidebar {
+        width: 100%;
+        margin-left: 0;
+        padding: 88px 20px 32px;
+    }
+
+    .rent-map-top {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .rent-map-top-right {
+        padding-top: 0;
+    }
+
+    .rent-map-page {
+        grid-template-columns: 1fr;
+    }
+
+    .rent-complex-list-panel,
+    .rent-detail-panel {
+        display: none;
+    }
+}
+
+/* =========================================================
+   상세 패널 이미지 영역 최종 보정
+   - id 기준으로도 강제 적용
+   - 다른 공통 CSS가 img 또는 div를 덮어써도 밀리지 않게 처리
+   ========================================================= */
+
+.rent-detail-panel {
+    align-items: stretch !important;
+    padding: 0 !important;
+}
+
+#rentDetailHero,
+.rent-detail-hero-area {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    height: 200px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    align-self: stretch !important;
+    overflow: hidden !important;
+    background: #eef2f0 !important;
+}
+
+#rentDetailHero img,
+.rent-detail-hero-area img {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+}
+
+.rent-detail-scroll {
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+#rentDetail {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.rent-detail-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 24px !important;
+}

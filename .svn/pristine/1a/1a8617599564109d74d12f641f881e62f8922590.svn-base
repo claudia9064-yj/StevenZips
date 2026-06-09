@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.or.ddit.domain.apt.mgmtOffice.survey.mapper.IMngSurveyMapper">
+
+
+
+
+
+    <insert id="insertSurvey">
+
+        INSERT INTO SURVEY (
+
+            SURVEY_NO,
+            SURVEY_NM,
+            SURVEY_CN,
+            SURVEY_TY_CD,
+            SURVEY_QITEM_CN,
+            SURVEY_BGNG_DT,
+            SURVEY_END_DT,
+            SURVEY_STTS_CD,
+            RGTR_ID,
+            APT_CD
+
+        )
+        VALUES (
+
+                   'SV' || TO_CHAR(SYSTIMESTAMP, 'MMDDHH24MISSFF3'),
+
+                   #{surveyNm},
+                   #{surveyCn},
+                   #{surveyTypeCd},
+                   #{surveyQitemCn},
+
+                   TO_DATE(#{surveyBgngDt}, 'YYYY-MM-DD'),
+                   TO_DATE(#{surveyEndDt}, 'YYYY-MM-DD'),
+
+                   #{surveySttsCd},
+                   #{rgtrId},
+                   #{aptCd}
+
+               )
+
+    </insert>
+
+    <select id="selectSurveyList"
+            parameterType="string"
+            resultType="kr.or.ddit.domain.apt.mgmtOffice.survey.dto.MngSurveyDTO">
+
+        SELECT
+
+            SURVEY_NO         surveyNo,
+            SURVEY_NM         surveyNm,
+            SURVEY_CN         surveyCn,
+            SURVEY_TY_CD      surveyTypeCd,
+            SURVEY_QITEM_CN   surveyQitemCn,
+            SURVEY_BGNG_DT    surveyBgngDt,
+            SURVEY_END_DT     surveyEndDt,
+            SURVEY_STTS_CD    surveySttsCd,
+            RGTR_ID           rgtrId,
+            APT_CD            aptCd
+
+        FROM SURVEY
+
+        ORDER BY SURVEY_BGNG_DT DESC
+
+    </select>
+
+
+    <select id="selectSurveyDetail"
+            parameterType="string"
+            resultType="kr.or.ddit.domain.apt.mgmtOffice.survey.dto.MngSurveyDTO">
+
+        SELECT
+
+            SURVEY_NO         surveyNo,
+            SURVEY_NM         surveyNm,
+            SURVEY_CN         surveyCn,
+            SURVEY_TY_CD      surveyTypeCd,
+            SURVEY_QITEM_CN   surveyQitemCn,
+            SURVEY_BGNG_DT    surveyBgngDt,
+            SURVEY_END_DT     surveyEndDt,
+            SURVEY_STTS_CD    surveySttsCd,
+            RGTR_ID           rgtrId,
+            APT_CD            aptCd
+
+        FROM SURVEY
+
+        WHERE SURVEY_NO = #{surveyNo}
+
+    </select>
+
+    <update id="updateSurvey">
+
+        UPDATE SURVEY
+        SET
+
+            SURVEY_NM = #{surveyNm},
+            SURVEY_CN = #{surveyCn},
+            SURVEY_TY_CD = #{surveyTypeCd},
+            SURVEY_QITEM_CN = #{surveyQitemCn},
+            SURVEY_BGNG_DT =
+                TO_DATE(#{surveyBgngDt}, 'YYYY-MM-DD'),
+
+            SURVEY_END_DT =
+                TO_DATE(#{surveyEndDt}, 'YYYY-MM-DD'),
+
+            SURVEY_STTS_CD = #{surveySttsCd},
+            MDF_DT = SYSDATE
+
+        WHERE SURVEY_NO = #{surveyNo}
+
+    </update>
+
+
+    <delete id="deleteSurvey">
+
+        DELETE FROM SURVEY
+        WHERE SURVEY_NO = #{surveyNo}
+
+    </delete>
+
+
+
+
+    <select id="selectSurveyResult"
+            parameterType="string"
+            resultType="map">
+
+        SELECT
+
+            SURVEY_NO        AS surveyNo,
+            SURVEY_NM        AS surveyNm,
+            SURVEY_CN        AS surveyCn,
+            SURVEY_TY_CD     AS surveyTypeCd,
+            SURVEY_STTS_CD   AS surveySttsCd,
+            SURVEY_BGNG_DT   AS surveyBgngDt,
+            SURVEY_END_DT    AS surveyEndDt,
+
+            0 AS totalAnswerCount,
+            0 AS participantCount,
+            0 AS answerRate
+
+        FROM SURVEY
+
+        WHERE SURVEY_NO = #{surveyNo}
+
+    </select>
+
+
+    <select id="selectMySurveyResponse"
+            resultType="string">
+
+        SELECT RSPNS_CN
+
+        FROM SURVEY_RSPNS
+
+        WHERE SURVEY_NO = #{surveyNo}
+          AND USER_NO = #{userNo}
+          AND ROWNUM = 1
+
+    </select>
+
+
+    <insert id="insertSurveyResponse">
+
+        INSERT INTO SURVEY_RSPNS (
+
+            RSPNS_NO,
+            SURVEY_NO,
+            RSPNS_CN,
+            REG_DT,
+            USER_NO,
+            HO_NO
+
+        )
+        VALUES (
+
+                   'RSP' || TO_CHAR(SYSDATE, 'MMDDHH24MISS'),
+
+                   #{surveyNo},
+                   #{response},
+                   SYSDATE,
+                   #{userNo},
+                   'TEMP_HO'
+
+               )
+
+    </insert>
+
+    <select id="existsSurveyResponse"
+            resultType="int">
+
+        SELECT COUNT(*)
+
+        FROM SURVEY_RSPNS
+
+        WHERE SURVEY_NO = #{surveyNo}
+          AND USER_NO = #{userNo}
+
+    </select>
+
+
+
+
+    <select id="selectSurveyTypeList"
+            parameterType="string"
+            resultType="kr.or.ddit.domain.apt.mgmtOffice.survey.dto.MngSurveyDTO">
+
+        SELECT
+
+            SURVEY_NO         surveyNo,
+            SURVEY_NM         surveyNm,
+            SURVEY_CN         surveyCn,
+            SURVEY_TY_CD      surveyTypeCd,
+            SURVEY_QITEM_CN   surveyQitemCn,
+            SURVEY_BGNG_DT    surveyBgngDt,
+            SURVEY_END_DT     surveyEndDt,
+            SURVEY_STTS_CD    surveySttsCd,
+            RGTR_ID           rgtrId,
+            APT_CD            aptCd
+
+        FROM SURVEY
+
+        WHERE SURVEY_TY_CD = #{type}
+
+        ORDER BY SURVEY_BGNG_DT DESC
+
+    </select>
+
+
+
+    <select id="selectSurveyStatistics"
+            parameterType="string"
+            resultType="map">
+
+        SELECT
+
+            DBMS_LOB.SUBSTR(
+                    RSPNS_CN,
+                    4000,
+                    1
+            ) AS answer,
+
+            COUNT(*) AS cnt
+
+        FROM SURVEY_RSPNS
+
+        WHERE SURVEY_NO = #{surveyNo}
+
+        GROUP BY DBMS_LOB.SUBSTR(
+                         RSPNS_CN,
+                         4000,
+                         1
+                 )
+
+        ORDER BY cnt DESC
+
+    </select>
+
+
+
+</mapper>
+
+
+
